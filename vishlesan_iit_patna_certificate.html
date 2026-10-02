@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate Portal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden; /* Prevents scrollbars */
+      background-color: #0f1117;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- Login Section Styling --- */
+    .login-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: #171923;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .login-card h2 {
+      color: #f7fafc;
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .login-card p {
+      color: #a0aec0;
+      font-size: 0.875rem;
+      text-align: center;
+      margin-top: -12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      color: #cbd5e0;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      background: #0f1117;
+      border: 1px solid #4a5568;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: #3182ce;
+    }
+
+    .error-msg {
+      color: #fc8181;
+      font-size: 0.85rem;
+      text-align: center;
+      display: none;
+    }
+
+    .btn-login {
+      background: #1a56db;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 6px;
+    }
+
+    .btn-login:hover {
+      background: #1e429f;
+    }
+
+    /* --- Certificate View Styling --- */
+    .certificate-container {
+      width: 100vw;
+      height: 100vh;
+      display: none; /* Controlled by auth check */
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .certificate-img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+      }
+      .login-wrapper {
+        display: none !important;
+      }
+      .certificate-container {
+        display: flex !important;
+        padding: 0;
+      }
+      .certificate-img {
+        box-shadow: none;
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Card -->
+  <div class="login-wrapper" id="loginWrapper">
+    <div class="login-card">
+      <h2>Certificate Verification</h2>
+      <p>Enter your credentials to view your certificate</p>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="name@example.com" 
+            required 
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="••••••••" 
+            required 
+          />
+        </div>
+
+        <div class="error-msg" id="errorMessage" style="margin-top: 10px;">
+          Invalid email or password. Please try again.
+        </div>
+
+        <button type="submit" class="btn-login" style="margin-top: 16px; width: 100%;">
+          View Certificate
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Certificate Display -->
+  <div class="certificate-container" id="certContainer">
+    <img 
+      src="certificate.png" 
+      alt="Certificate of Completion - Robin Solanki" 
+      class="certificate-img"
+    />
+  </div>
+
+  <script>
+    const VALID_EMAIL = "solankirobin2000@gmail.com";
+    const VALID_PASS = "Solanki@2000";
+
+    // Show certificate and hide login
+    function showCertificate() {
+      document.getElementById("loginWrapper").style.display = "none";
+      document.getElementById("certContainer").style.display = "flex";
+    }
+
+    // Check login state on initial load / refresh
+    (function checkSession() {
+      if (localStorage.getItem("isCertificateAuthenticated") === "true") {
+        showCertificate();
+      }
+    })();
+
+    function handleLogin(e) {
+      e.preventDefault();
+
+      const emailInput = document.getElementById("email").value.trim();
+      const passInput = document.getElementById("password").value;
+      const errorMsg = document.getElementById("errorMessage");
+
+      if (emailInput === VALID_EMAIL && passInput === VALID_PASS) {
+        // Persist session across refreshes
+        localStorage.setItem("isCertificateAuthenticated", "true");
+        showCertificate();
+      } else {
+        errorMsg.style.display = "block";
+      }
+    }
+  </script>
+
+</body>
+</html>
